@@ -45,10 +45,13 @@ def main():
             if not api_key and hasattr(st, "secrets") and "GROQ_API_KEY" in st.secrets:
                 api_key = st.secrets["GROQ_API_KEY"]
             
-            groq_client = Groq(api_key=api_key)
-            llm_coach = LLMCoach(groq_client)
-            tts = TextToSpeech()
-            st.session_state.voice_pipeline = VoicePipeline(llm_coach, tts)
+            if api_key and api_key.strip():
+                groq_client = Groq(api_key=api_key.strip())
+                llm_coach = LLMCoach(groq_client)
+                tts = TextToSpeech()
+                st.session_state.voice_pipeline = VoicePipeline(llm_coach, tts)
+            else:
+                st.session_state.voice_pipeline = None
         except Exception as e:
             st.session_state.voice_pipeline = None
 
@@ -61,6 +64,9 @@ def main():
             st.caption(f"👤 Login as {st.session_state.username}")
 
         st.divider()
+
+        if not st.session_state.get("voice_pipeline"):
+            st.warning("⚠️ Groq API Key missing. Voice coaching is disabled.")
 
         st.subheader("Workout Plan")
 
